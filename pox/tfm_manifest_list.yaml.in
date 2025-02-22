@@ -1,0 +1,29 @@
+#-------------------------------------------------------------------------------
+# Copyright (c) 2018-2021, Arm Limited. All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+#
+#-------------------------------------------------------------------------------
+
+{
+  "description": "TF-M secure partition manifests",
+  "type": "manifest_list",
+  "version_major": 0,
+  "version_minor": 1,
+  "manifest_list": [
+    {
+      "description": "TFM POX Partition",
+      "short_name": "TFM_POX",
+      "manifest": "${APPLICATION_SOURCE_DIR}/pox/tfm_pox.yaml",
+      "output_path": "${TFM_BINARY_DIR}/pox",
+      "tfm_partition_ipc": true,
+      "version_major": 0,
+      "version_minor": 1,
+      "linker_pattern": {
+        "library_list": [
+           "*tfm_*partition_pox*"
+         ],
+      }
+    },
+  ]
+}
