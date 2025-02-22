@@ -20,6 +20,8 @@ target_include_directories(tfm_partitions
 target_sources(tfm_app_rot_partition_pox
     PRIVATE
         pox.c
+        pox_execute.c
+        pox_handler.c
 )
 
 # The generated sources
