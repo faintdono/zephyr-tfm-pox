@@ -22,6 +22,7 @@ target_sources(tfm_app_rot_partition_pox
         pox.c
         pox_execute.c
         pox_handler.c
+        pox_report.c
 )
 
 # The generated sources
@@ -39,6 +40,7 @@ target_link_libraries(tfm_app_rot_partition_pox
         platform_s
         tfm_sprt
         psa_crypto_config
+        qcbor
 )
 
 target_link_libraries(tfm_spm
