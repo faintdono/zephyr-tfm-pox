@@ -21,7 +21,7 @@ psa_status_t pox_ipc_handler(psa_msg_t *msg)
     printf("[Secure] POX Initialize \n");
 
     psa_status_t status;
-    size_t token_size = TOKEN_BUF_SIZE;
+    size_t sys_token_sz;                 // Actual size of retrieved token
     uint8_t token_buf[TOKEN_BUF_SIZE];   // Buffer for the IA token
     uint8_t report_buf[REPORT_BUF_SIZE]; // Buffer for the PoX report
     size_t report_size = REPORT_BUF_SIZE;
@@ -49,17 +49,25 @@ psa_status_t pox_ipc_handler(psa_msg_t *msg)
         printf("[Secure] Function trying to execute\n");
         execution_output = execute_function(stored_faddr); // Call the function from pox_execute.c
 
-        status = att_get_iat(stored_challenge, token_buf);
+        // Get Initial Attestation Token
+        status = att_get_iat(stored_challenge, token_buf, &sys_token_sz);
         if (status != PSA_SUCCESS)
         {
+            printf("[Secure] ERROR: Failed to get attestation token.\n");
             return PSA_ERROR_GENERIC_ERROR;
         }
 
-        status = generate_pox_report(token_buf, token_size, stored_faddr, execution_output, report_buf, &report_size);
-        // Return result
+        // Generate PoX Report
+        status = generate_pox_report(token_buf, sys_token_sz, stored_faddr, execution_output, report_buf, &report_size);
+        if (status != PSA_SUCCESS)
+        {
+            printf("[Secure] ERROR: Failed to generate PoX report.\n");
+            return PSA_ERROR_GENERIC_ERROR;
+        }
+
+        // Send PoX Report to Non-Secure World
         psa_write(msg->handle, 0, &execution_output, sizeof(int));
-        psa_write(msg->handle, 1, token_buf, token_size);   // Send the IA token
-        psa_write(msg->handle, 2, report_buf, report_size); // Send the PoX report
+        psa_write(msg->handle, 1, report_buf, report_size); // Send only the PoX report
         psa_reply(msg->handle, PSA_SUCCESS);
         printf("[Secure] Response sent successfully.\n");
         break;

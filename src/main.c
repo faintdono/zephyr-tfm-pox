@@ -1,32 +1,87 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "psa/client.h"
 #include "psa_manifest/sid.h"
+// #include "qcbor/qcbor.h"
 
 #define CHALLENGE_SIZE 32
+#define REPORT_BUF_SIZE 512
 
 int sample_function(void)
 {
     return 12345; // Example output
 }
 
+// // Function to parse the CBOR-encoded PoX report
+// void parse_pox_report(uint8_t *cbor_data, size_t cbor_len)
+// {
+//     QCBORError err;
+//     QCBORDecodeContext decode_ctx;
+//     QCBORItem item;
+
+//     QCBORDecode_Init(&decode_ctx, (UsefulBufC){cbor_data, cbor_len}, QCBOR_DECODE_MODE_NORMAL);
+//     err = QCBORDecode_EnterMap(&decode_ctx, NULL);
+//     if (err != QCBOR_SUCCESS)
+//     {
+//         printf("[NS] ERROR: Invalid CBOR format!\n");
+//         return;
+//     }
+
+//     // Extract IA token
+//     err = QCBORDecode_GetByteString(&decode_ctx, &item);
+//     if (err == QCBOR_SUCCESS && item.label.string.len > 0)
+//     {
+//         printf("[NS] Attestation Token: ");
+//         for (size_t i = 0; i < item.val.string.len; i++)
+//         {
+//             printf("%02x", item.val.string.ptr[i]);
+//         }
+//         printf("\n");
+//     }
+
+//     // Extract function address
+//     err = QCBORDecode_GetUInt64(&decode_ctx, &item);
+//     if (err == QCBOR_SUCCESS)
+//     {
+//         printf("[NS] Function Address: 0x%lx\n", (uintptr_t)item.val.uint64);
+//     }
+
+//     // Extract execution output
+//     err = QCBORDecode_GetInt64(&decode_ctx, &item);
+//     if (err == QCBOR_SUCCESS)
+//     {
+//         printf("[NS] Execution Output: %ld\n", item.val.int64);
+//     }
+
+//     QCBORDecode_ExitMap(&decode_ctx);
+//     err = QCBORDecode_Finish(&decode_ctx);
+//     if (err != QCBOR_SUCCESS)
+//     {
+//         printf("[NS] ERROR: Failed to decode CBOR data!\n");
+//     }
+// }
+
 int main(void)
 {
     psa_handle_t handle;
-    uint8_t challenge[32] = {0};                   // Example challenge data
-    uintptr_t faddr = (uintptr_t)&sample_function; // Get function address
+    uint8_t challenge[CHALLENGE_SIZE] = {0};       // Example challenge data
+    uintptr_t faddr = (uintptr_t)&sample_function; // Function address
 
     psa_invec in_vec[2] = {
         {challenge, CHALLENGE_SIZE},
         {&faddr, sizeof(uintptr_t)}};
-    psa_outvec out_vec[3] = {{0}};
+
+    uint8_t *report_buf = malloc(REPORT_BUF_SIZE);
+    size_t report_len = REPORT_BUF_SIZE;
+
+    psa_outvec out_vec[2] = {
+        {0},
+        {report_buf, report_len} // PoX Report
+    };
 
     int result;
     out_vec[0].base = &result;
     out_vec[0].len = sizeof(int);
-    out_vec[1].base = malloc(256); // Allocate space for the IA token
-    out_vec[1].len = 256;          // Max size for the IA token
-    out_vec[2].base = malloc(512); // Allocate space for the PoX report
-    out_vec[2].len = 512;          // Max size for the PoX report
 
     printf("[NS] Requesting Proof of Execution...\n");
 
@@ -38,33 +93,20 @@ int main(void)
     }
 
     printf("[NS] Sending Challenge Size: %d, Function Ptr Size: %d\n", CHALLENGE_SIZE, (int)sizeof(uintptr_t));
-    psa_status_t status = psa_call(handle, PSA_IPC_CALL, in_vec, 2, out_vec, 1);
+    psa_status_t status = psa_call(handle, PSA_IPC_CALL, in_vec, 2, out_vec, 2);
 
     if (status == PSA_SUCCESS)
     {
-        printf("[NS] Result: %d\n", result);
-        printf("[NS] Attestation Token: ");
-        for (size_t i = 0; i < out_vec[1].len; i++)
-        {
-            printf("%02x", ((uint8_t *)out_vec[1].base)[i]);
-        }
-        printf("\n");
-
-        // Print PoX report as hex (you may choose to parse it if needed)
-        printf("[NS] PoX Report: ");
-        for (size_t i = 0; i < out_vec[2].len; i++)
-        {
-            printf("%02x", ((uint8_t *)out_vec[2].base)[i]);
-        }
-        printf("\n");
+        printf("[NS] Received Output: %d\n", result);
+        printf("[NS] Received PoX Report.\n");
+        // parse_pox_report(report_buf, out_vec[0].len);
     }
     else
     {
-        printf("[NS] ERROR: Failed to retrieve Result, IA token, or PoX report.\n");
+        printf("[NS] ERROR: Failed to retrieve PoX report.\n");
     }
 
     psa_close(handle);
-    free(out_vec[1].base); // Free the IA token buffer
-    free(out_vec[2].base); // Free the PoX report buffer
+    free(report_buf); // Free allocated buffer
     return 0;
 }
