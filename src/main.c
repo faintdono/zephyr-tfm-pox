@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "psa/client.h"
 #include "psa_manifest/sid.h"
+#include "util_sformat.h"
 // #include "qcbor/qcbor.h"
 
 #define CHALLENGE_SIZE 32
@@ -95,10 +96,17 @@ int main(void)
     printf("[NS] Sending Challenge Size: %d, Function Ptr Size: %d\n", CHALLENGE_SIZE, (int)sizeof(uintptr_t));
     psa_status_t status = psa_call(handle, PSA_IPC_CALL, in_vec, 2, out_vec, 2);
 
+    struct sf_hex_tbl_fmt fmt = {
+		.ascii = false,
+		.addr_label = false,
+		.addr = 0
+	};
+
     if (status == PSA_SUCCESS)
     {
         printf("[NS] Received Output: %d\n", result);
         printf("[NS] Received PoX Report.\n");
+        sf_hex_tabulate_16(&fmt, report_buf, (size_t) report_len);
         // parse_pox_report(report_buf, out_vec[0].len);
     }
     else
