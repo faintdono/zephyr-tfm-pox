@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #define CBOR_BUFFER_SIZE 512
-#define ATT_MAX_TOKEN_SIZE 576  // Adjusted for max token size
+#define ATT_MAX_TOKEN_SIZE 0x240  // Adjusted for max token size
 
 /**
  * @brief Retrieves the Initial Attestation Token (IAT).

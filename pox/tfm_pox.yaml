@@ -13,7 +13,7 @@
   "priority": "NORMAL",
   "model": "IPC",
   "entry_point": "tfm_pox_main",
-  "stack_size": "0x800",
+  "stack_size": "0x1000",
   "services": [
     {
       "name": "POX_SERVICE",
