@@ -1,11 +1,13 @@
 #ifndef POX_REPORT_H
 #define POX_REPORT_H
 
-#include "psa/error.h"
-#include <stddef.h>
-#include <stdint.h>
+#include "pox_report.h"
+#include "psa/initial_attestation.h"
+#include "psa/crypto.h"
+#include <stdio.h>
+#include "tfm_sp_log.h"
 
-#define CBOR_BUFFER_SIZE 512
+#define CBOR_BUFFER_SIZE 1024
 #define ATT_MAX_TOKEN_SIZE 0x240  // Adjusted for max token size
 
 /**

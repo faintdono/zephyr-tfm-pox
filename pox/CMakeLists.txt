@@ -4,18 +4,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+cmake_minimum_required(VERSION 3.21)
+
 add_library(tfm_app_rot_partition_pox STATIC)
 
-target_include_directories(tfm_app_rot_partition_pox
-    INTERFACE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    PRIVATE
-        ${CMAKE_BINARY_DIR}/pox
-)
-target_include_directories(tfm_partitions
-    INTERFACE
-        ${CMAKE_BINARY_DIR}/pox
-)
+add_dependencies(tfm_app_rot_partition_pox manifest_tool)
 
 target_sources(tfm_app_rot_partition_pox
     PRIVATE
@@ -28,19 +21,34 @@ target_sources(tfm_app_rot_partition_pox
 # The generated sources
 target_sources(tfm_app_rot_partition_pox
 PRIVATE
-        ${CMAKE_BINARY_DIR}/pox/auto_generated/intermedia_tfm_pox.c
+        ${CMAKE_BINARY_DIR}/generated/secure_fw/partitions/proof_of_execution/auto_generated/intermedia_tfm_pox.c
 )
 target_sources(tfm_partitions
     INTERFACE
-        ${CMAKE_BINARY_DIR}/pox/auto_generated/load_info_tfm_pox.c
+        ${CMAKE_BINARY_DIR}/generated/secure_fw/partitions/proof_of_execution/auto_generated/load_info_tfm_pox.c
+)
+
+# Set include directory
+target_include_directories(tfm_app_rot_partition_pox
+    PUBLIC
+        .
+    PRIVATE
+        ${CMAKE_BINARY_DIR}/generated/secure_fw/partitions/proof_of_execution
+)
+target_include_directories(tfm_partitions
+    INTERFACE
+        ${CMAKE_BINARY_DIR}/generated/secure_fw/partitions/proof_of_execution
 )
 
 target_link_libraries(tfm_app_rot_partition_pox
     PRIVATE
         platform_s
+        tfm_config
+        tfm_t_cose_s
         tfm_sprt
-        psa_crypto_config
+        tfm_boot_status
         qcbor
+        psa_crypto_config
 )
 
 target_link_libraries(tfm_spm
