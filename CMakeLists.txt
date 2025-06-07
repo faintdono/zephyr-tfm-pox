@@ -24,7 +24,11 @@ project(tfm_secure_partition)
 
 target_sources(app PRIVATE
   src/main.c
+  src/psa_attestation.c
   src/util_sformat.c
+  src/util_app_cfg.c
+  src/util_app_log.c
+  src/shell.c
 )
 
 target_include_directories(app PRIVATE
