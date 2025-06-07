@@ -84,7 +84,7 @@ err:
     return err ? al_psa_status(err, __func__) : err;
 }
 
-psa_status_t att_get_pox(uint8_t *faddr, uint8_t *ch_buffer, uint32_t ch_sz,
+psa_status_t att_get_pox(uintptr_t *faddr, uint8_t *ch_buffer, uint32_t ch_sz,
                          uint8_t *token_buffer, uint32_t *token_sz)
 {
     psa_status_t err = PSA_SUCCESS;
@@ -190,12 +190,13 @@ psa_status_t pox_test(void)
 
     /* String format output config. */
     struct sf_hex_tbl_fmt fmt = {
-        .ascii = true,
-        .addr_label = true,
+        .ascii = false,
+        .addr_label = false,
         .addr = 0};
 
     /* Request the POX from the initial attestation service. */
-    err = att_get_pox((uint8_t *)&sample_function2, nonce_buf, nonce_sz, pox_buf, &pox_sz);
+    uintptr_t func_addr = (uintptr_t)sample_function2;
+    err = att_get_pox(&func_addr, nonce_buf, nonce_sz, pox_buf, &pox_sz);
     if (err)
     {
         goto err;

@@ -53,7 +53,7 @@ psa_status_t att_get_pub_key(void);
 psa_status_t att_get_iat(uint8_t *ch_buffer, uint32_t ch_sz,
 			 uint8_t *token_buffer, uint32_t *token_sz);
 
-psa_status_t att_get_pox(uint8_t *faddr, uint8_t *ch_buffer, uint32_t ch_sz,
+psa_status_t att_get_pox(uintptr_t *faddr, uint8_t *ch_buffer, uint32_t ch_sz,
 			 uint8_t *token_buffer, uint32_t *token_sz);
 /**
  * @brief TODO!
