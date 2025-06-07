@@ -8,7 +8,7 @@
 // Size of the challenge in bytes (256 bits)
 #define CHALLENGE_SIZE 32
 #define TOKEN_BUF_SIZE 256
-#define REPORT_BUF_SIZE 512
+#define REPORT_BUF_SIZE 1024
 
 // Securely stored values
 static uint8_t stored_challenge[CHALLENGE_SIZE];
@@ -50,7 +50,7 @@ psa_status_t pox_ipc_handler(psa_msg_t *msg)
         execution_output = execute_function(stored_faddr); // Call the function from pox_execute.c
 
         // Get Initial Attestation Token
-        status = att_get_iat(stored_challenge, token_buf, &sys_token_sz);
+        status = att_get_iat(stored_challenge, &token_buf, &sys_token_sz);
         if (status != PSA_SUCCESS)
         {
             printf("[Secure] ERROR: Failed to get attestation token.\n");
@@ -66,7 +66,9 @@ psa_status_t pox_ipc_handler(psa_msg_t *msg)
         }
 
         // Send PoX Report to Non-Secure World
+        printf("[Secure] Send Execution Output\n");
         psa_write(msg->handle, 0, &execution_output, sizeof(int));
+        printf("[Secure] Send POX Report with size %d\n", report_size);
         psa_write(msg->handle, 1, report_buf, report_size); // Send only the PoX report
         psa_reply(msg->handle, PSA_SUCCESS);
         printf("[Secure] Response sent successfully.\n");

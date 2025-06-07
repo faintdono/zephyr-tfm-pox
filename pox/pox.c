@@ -1,24 +1,24 @@
 #include "psa_manifest/tfm_pox.h"
 #include "pox_handler.h"
 #include "psa/service.h"
-#include <stdio.h>
+#include "tfm_sp_log.h" // TF-M Secure Partition Logging
 
 // Secure partition entry point that continuously listens for requests
-void tfm_pox_main(void)
+void pox_ipc_entry(void)
 {
     psa_signal_t signals = 0;
 
-    printf("[Secure] POX Partition Started.\n");
+    LOG_INFFMT("[INF][POX] POX partition Initialize!\n");
 
     while (1)
     {
         signals = psa_wait(PSA_WAIT_ANY, PSA_BLOCK);
-        printf("[Secure] Received signal: 0x%X\n", signals);
-
-        if (signals & POX_SERVICE_SIGNAL)
+        LOG_INFFMT("[Secure] Received signal: 0x%X\n", signals);
+        
+        if (signals & TFM_POX_SERVICE_SIGNAL)
         {
             psa_msg_t msg;
-            psa_status_t status = psa_get(POX_SERVICE_SIGNAL, &msg);
+            psa_status_t status = psa_get(TFM_POX_SERVICE_SIGNAL, &msg);
             if (status != PSA_SUCCESS)
             {
                 printf("[Secure] ERROR: psa_get() failed with status: %d\n", status);
