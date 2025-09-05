@@ -195,8 +195,8 @@ psa_status_t pox_test(void)
         .addr = 0};
 
     /* Request the POX from the initial attestation service. */
-    uintptr_t func_addr = (uintptr_t)sample_function2;
-    err = att_get_pox(&func_addr, nonce_buf, nonce_sz, pox_buf, &pox_sz);
+    uintptr_t func_addr = (uintptr_t) sample_function2;
+    err = att_get_pox(func_addr, nonce_buf, nonce_sz, pox_buf, &pox_sz);
     if (err)
     {
         goto err;
@@ -207,6 +207,56 @@ psa_status_t pox_test(void)
 
     /* Dump the IAT for debug purposes. */
     sf_hex_tabulate_16(&fmt, pox_buf, (size_t)pox_sz);
+
+err:
+    return err;
+}
+
+
+psa_status_t iat_test(void)
+{
+    psa_status_t err = PSA_SUCCESS;
+
+    /* 64-byte nonce/challenge, encrypted using the default public key;
+     *
+     * 00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
+     * 00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
+     * 00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
+     * 00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
+     */
+    uint32_t nonce_sz = 32;
+    // uint8_t nonce_buf[ATT_MAX_TOKEN_SIZE] = {
+    //     0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+    //     0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
+    //     0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+    //     0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
+    //     0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+    //     0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
+    //     0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77,
+    //     0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF,
+    //     0};
+    uint8_t nonce_buf[ATT_MAX_TOKEN_SIZE] = {0};
+    /* POX response buffer. */
+    uint32_t iat_sz = ATT_MAX_TOKEN_SIZE;
+    uint8_t iat_buf[1024] = {0};
+
+    /* String format output config. */
+    struct sf_hex_tbl_fmt fmt = {
+        .ascii = false,
+        .addr_label = false,
+        .addr = 0};
+
+    err = att_get_iat(nonce_buf, nonce_sz, iat_buf, &iat_sz);
+    if (err)
+    {
+        goto err;
+    }
+
+    /* Display queued log messages before dumping the IAT. */
+    al_dump_log();
+
+    /* Dump the IAT for debug purposes. */
+    sf_hex_tabulate_16(&fmt, iat_buf, (size_t)iat_sz);
 
 err:
     return err;
